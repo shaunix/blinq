@@ -44,6 +44,7 @@ class CmdRequest (blinq.reqs.Request):
         self._tool_options = {}
         self._tool_args = []
         self._responders = []
+        self._has_tool_options = False
 
     def set_usage (self, usage):
         self._common_parser.set_usage (usage)
@@ -52,6 +53,7 @@ class CmdRequest (blinq.reqs.Request):
         self._common_parser.add_option (*args, **kw)
 
     def add_tool_option (self, *args, **kw):
+        self._has_tool_options = True
         self._tool_parser.add_option (*args, **kw)
 
     def parse_common_options (self):
@@ -68,7 +70,7 @@ class CmdRequest (blinq.reqs.Request):
 
     def print_help (self):
         self._common_parser.print_help (self)
-        if self._tool is not None:
+        if self._tool is not None and self._has_tool_options:
             self._tool_parser.print_help (self)
 
     def get_tool_name (self):
@@ -120,6 +122,18 @@ class CmdErrorResponse (CmdResponse):
 
 
 class CmdResponder (blinq.reqs.Responder):
+    command = None
+    synopsis = None
+
+    @classmethod
+    def set_usage (cls, request):
+        request.set_usage ('%prog [common options] ' + cls.command + ' [command options]')
+
+    @classmethod
+    def add_tool_options (cls, request):
+        raise NotImplementedError ('%s does not provide the add_tool_options method.'
+                                   % cls.__name__)
+
     @classmethod
     def respond (self, request):
         tool = request.get_tool_name ()
@@ -156,6 +170,11 @@ class CmdResponder (blinq.reqs.Responder):
 
 class OptionParser (optparse.OptionParser):
     class CommonFormatter (optparse.IndentedHelpFormatter):
+        def format_usage (self, usage):
+            if '\n' in usage:
+                return 'Usage: ' + '\n       '.join(usage.split('\n')) + '\n'
+            else:
+                return 'Usage: ' + usage + '\n'
         def format_heading (self, heading):
             return 'Common Options:\n'
 

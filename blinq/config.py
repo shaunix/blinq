@@ -53,7 +53,7 @@ class Config (object):
         self._config.write(fp)
         fp.close()
 
-    def _get_raw_option (self, name):
+    def get_raw_option (self, name):
         try:
             return self._config.get ('blinq', name)
         except:
@@ -62,7 +62,7 @@ class Config (object):
     def __getattr__ (self, name):
         try:
             func = self._options[name]
-            return func (self._get_raw_option (name))
+            return func (self.get_raw_option (name))
         except:
             raise AttributeError ('This \'Config\' object has no attribute \'%s\'' % name)
 
