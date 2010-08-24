@@ -49,13 +49,17 @@ class Config (object):
         return options
 
     def save (self):
+        import os
+        filedir = os.path.dirname (self._filename)
+        if not os.path.exists (filedir):
+            os.makedirs (filedir)
         fp = open(self._filename, 'w')
         self._config.write(fp)
         fp.close()
 
     def get_raw_option (self, name):
         try:
-            return self._config.get ('blinq', name)
+            return self._config.get ('config', name)
         except:
             return None
 
@@ -70,9 +74,9 @@ class Config (object):
         if name.startswith('_'):
             self.__dict__[name] = value
         else:
-            if not self._config.has_section('blinq'):
-                self._config.add_section ('blinq')
-            self._config.set ('blinq', name, value)
+            if not self._config.has_section('config'):
+                self._config.add_section ('config')
+            self._config.set ('config', name, value)
         
 config = Config ()
 
