@@ -20,6 +20,7 @@ import os
 
 class ExtensionPoint (object):
     _disabled = []
+    _disabled_pkgs = []
 
     @classmethod
     def get_extensions (cls):
@@ -34,12 +35,22 @@ class ExtensionPoint (object):
     def disable_extension (cls, ext):
         cls._disabled.append (ext)
 
+    @classmethod
+    def disable_package (cls, pkg):
+        cls._disabled_pkgs.append (pkg)
+
 
 def import_extensions (base, domain):
     plugdir = os.path.dirname (base.__file__)
     for pkg in os.listdir (plugdir):
         if os.path.isdir (os.path.join (plugdir, pkg)):
             try:
-                __import__ (base.__name__ + '.' + pkg + '.' + domain)
+                pkgname = base.__name__ + '.' + pkg
+                if pkgname in ExtensionPoint._disabled_pkgs:
+                    continue
+                pkgname += '.' + domain
+                if pkgname in ExtensionPoint._disabled_pkgs:
+                    continue
+                __import__ (pkgname)
             except ImportError:
                 pass
