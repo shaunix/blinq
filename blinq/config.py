@@ -66,7 +66,7 @@ class Config (object):
     def __getattr__ (self, name):
         try:
             func = self._options[name]
-            return func (self.get_raw_option (name))
+            return func (self, self.get_raw_option (name))
         except:
             raise AttributeError ('This \'Config\' object has no attribute \'%s\'' % name)
 
@@ -81,12 +81,12 @@ class Config (object):
 config = Config ()
 
 @config.option
-def mail_server (val):
+def mail_server (config, val):
     """The SMTP server to send mail through"""
     return (val is not None) and val or 'localhost'
 
 @config.option
-def mail_port (val):
+def mail_port (config, val):
     """The port to use to connec to the SMTP server"""
     if val is not None:
         return val
@@ -96,28 +96,27 @@ def mail_port (val):
         return '25'
 
 @config.option
-def mail_encryption (val):
+def mail_encryption (config, val):
     """Type of encryption to use for SMTP; one of 'none', 'ssl', or 'tsl'"""
     return (val in ('ssl', 'tsl')) and val or None
 
 @config.option
-def mail_username (val):
+def mail_username (config, val):
     """The username to connect to the SMTP server, or 'none' for no authenticaion"""
     return (val not in (None, 'none', 'None')) and val or None
 
 @config.option
-def mail_password (val):
+def mail_password (config, val):
     """The password to connect to the SMTP server"""
     return val
 
 @config.option
-def mail_from (val):
+def mail_from (config, val):
     """The email address to send mail from"""
     return (val is not None) and val or 'nobody@localhost'
 
-
 @config.option
-def web_root_url (url):
+def web_root_url (config, url):
     """The root URL for this site"""
     if url is None:
         return 'http://127.0.0.1/'
