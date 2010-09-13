@@ -136,7 +136,7 @@ class WebResponse (blinq.reqs.Response):
             self.payload.output (self)
 
     def write (self, txt):
-        if isinstance (txt, HtmlPayload):
+        if isinstance (txt, blinq.reqs.Payload):
             txt.output (self)
         elif isinstance(txt, unicode):
             self._fp.write (txt.encode ('utf-8'))
