@@ -55,12 +55,17 @@ def attrsorted (lst, *attrs):
     """
     def attrget (obj, attr):
         """Get an attribute or list of attributes from an object"""
-        if isinstance (attr, basestring):
+        if isinstance (attr, tuple) or isinstance (attr, list):
+            if len(attr) > 1:
+                return attrget (attrget (obj, attr[0]), attr[1:])
+            else:
+                return attrget (obj, attr[0])
+        elif isinstance (obj, dict):
+            return obj.get (attr)
+        elif isinstance (attr, basestring):
             return getattr (obj, attr)
         elif isinstance (attr, int):
             return obj.__getitem__ (attr)
-        elif len(attr) > 0:
-            return attrget (attrget (obj, attr[0]), attr[1:])
         elif isinstance (obj, basestring):
             return obj.lower()
         else:
