@@ -64,7 +64,7 @@ def attrsorted (lst, *attrs):
             return obj.get (attr)
         elif isinstance (attr, basestring):
             if attr.startswith('[') and attr.endswith(']'):
-                return obj.get(attr[1:-1])
+                return obj[attr[1:-1]]
             return getattr (obj, attr)
         elif isinstance (attr, int):
             return obj.__getitem__ (attr)
