@@ -144,6 +144,23 @@ class WebResponse (blinq.reqs.Response):
             self._fp.write (txt)
 
 
+class TextPayload (blinq.reqs.Payload):
+    """Payload for plain text"""
+    def __init__ (self, **kw):
+        super (TextPayload, self).__init__ (**kw)
+        self.content_type = 'text/plain'
+        self._text_content = ''
+
+    def set_content (self, content):
+        self._text_content = content
+
+    def add_content (self, content):
+        self._text_content += content
+
+    def output (self, res):
+        res.write (self._text_content)
+
+
 class JsonPayload (blinq.reqs.Payload):
     """Payload for JSON data"""
     def __init__ (self, **kw):
