@@ -75,7 +75,13 @@ def attrsorted (lst, *attrs):
 
     def lcmp (val1, val2):
         """Compare two objects, case-insensitive if strings"""
-        if isinstance (val1, unicode):
+        if val1 is None:
+            if val2 is None:
+                return 0
+            return -1
+        elif val2 is None:
+            return 1
+        elif isinstance (val1, unicode):
             v1 = val1.lower()
         elif isinstance (val1, basestring):
             v1 = val1.decode('utf-8').lower()
