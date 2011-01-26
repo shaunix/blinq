@@ -106,42 +106,57 @@ class WebResponse (blinq.reqs.Response):
     def set_cookie (self, cookie, value):
         self._cookies.append ((cookie, value))
 
+    def get_response (self):
+        status = '200 OK'
+        headers = []
+        if self.http_status == 404:
+            status = '404 Not found'
+        elif self.http_status == 500:
+            status = '500 Internal server error'
+        if self.http_status == 301:
+            status = '301 Moved permanently'
+            headers.append(('Location', self._location or blinq.config.web_root_url))
+        else:
+            headers.append(('Content-type', self.content_type))
+            if self.http_content_disposition is not None:
+                headers.append(('Content-disposition', self.http_content_disposition))
+        for cookie, value in self._cookies:
+            ck = Cookie.SimpleCookie()
+            ck[cookie] = value
+            nohttp = blinq.config.web_root_url
+            nohttp = nohttp[nohttp.find('://') + 3:]
+            ck[cookie]['domain'] = nohttp[:nohttp.find('/')]
+            ck[cookie]['path'] = nohttp[nohttp.find('/'):]
+            headers.append(('Set-Cookie', ck.output(header='')))
+        return (status, headers)
+
     def output (self, fp=None):
         self._fp = fp
         if self._fp is None:
             self._fp = sys.stdout
         if self.request.http:
-            if self.http_status == 404:
-                self.write('Status: 404 Not found\n')
-            elif self.http_status == 500:
-                self.write('Status: 500 Internal server error\n')
-            if self.http_status == 301:
-                self.write('Status: 301 Moved permanently\n')
-                self.write('Location: %s\n' % (self._location or blinq.config.web_root_url))
-            else:
-                self.write('Content-type: %s\n' % self.content_type)
-                if self.http_content_disposition is not None:
-                    self.write('Content-disposition: %s\n' % self.http_content_disposition)
-            if len(self._cookies) > 0:
-                ck = Cookie.SimpleCookie()
-                for cookie, value in self._cookies:
-                    ck[cookie] = value
-                    nohttp = blinq.config.web_root_url
-                    nohttp = nohttp[nohttp.find('://') + 3:]
-                    ck[cookie]['domain'] = nohttp[:nohttp.find('/')]
-                    ck[cookie]['path'] = nohttp[nohttp.find('/'):]
-                self.write(ck.output() + '\n')
+            (status, headers) = self.get_response()
+            if self.http_status != 200:
+                self.write('Status: %s \n' % status)
+            for header in headers:
+                self.write('%s: %s\n' % header)
             self.write('\n')
+        self.output_payload (fp=fp)
+
+    def output_payload (self, fp=None):
+        self._fp = fp
+        if self._fp is None:
+            self._fp = sys.stdout
         if self.payload is not None:
             self.payload.output (self)
 
     def write (self, txt):
         if isinstance (txt, blinq.reqs.Payload):
             txt.output (self)
-        elif isinstance(txt, unicode):
-            self._fp.write (txt.encode ('utf-8'))
-        else:
-            self._fp.write (txt)
+            return
+        if isinstance(txt, unicode):
+            txt = txt.encode ('utf-8')
+        self._fp.write (txt)
 
 
 class TextPayload (blinq.reqs.Payload):
