@@ -36,6 +36,7 @@ class WebRequest (blinq.reqs.Request):
         self.http = kw.pop ('http', True)
         self.path_info = kw.pop ('path_info', None)
         self.query_string = kw.pop ('query_string', None)
+        self.stdin = kw.pop ('stdin', sys.stdin)
         cookies = kw.pop('http_cookie', None)
 
         super (WebRequest, self).__init__(**kw)
@@ -55,10 +56,12 @@ class WebRequest (blinq.reqs.Request):
                     self.path.append (part)
 
         self.post_data = {}
-        if self.getenv ('REQUEST_METHOD') == 'POST':
-            data = cgi.parse ()
+        if self.getenv('REQUEST_METHOD') == 'POST':
+            environ = self.environ.copy()
+            environ.pop('QUERY_STRING')
+            data = cgi.parse(fp=self.stdin, environ=environ)
             for key in data.keys():
-                self.post_data[key] = blinq.utils.utf8dec (data[key][0])
+                self.post_data[key] = blinq.utils.utf8dec(data[key][0])
 
         self.query = {}
         if self.query_string is not None:

@@ -25,7 +25,7 @@ import blinq.ext
 class Request (object):
     """Abstract base class for all requests"""
     def __init__ (self, **kw):
-        self.environ = kw.pop ('environ', os.environ)
+        self.environ = kw.pop('environ', os.environ).copy()
         super (Request, self).__init__(**kw)
         self._data = {}
 
